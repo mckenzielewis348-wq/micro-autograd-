@@ -5,7 +5,7 @@ class TestValueOps(unittest.TestCase):
     def test_addition_and_multiplication(self):
         a = Value(2.0)
         b = Value(3.0)
-        c = a * b + a
+        c = (a * b) + a
         c.backward()
         self.assertEqual(c.data, 7.0)
         self.assertEqual(a.grad, 4.0) # dc/da = b + 1 = 4
