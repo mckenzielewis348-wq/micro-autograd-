@@ -1,11 +1,15 @@
-class Value:
+import math
 
+class Value:
     def __init__(self, data, _children=(), _op=""):
-        self.data = data
+        self.data = float(data)
         self.grad = 0.0
         self._backward = lambda: None
         self._prev = set(_children)
         self._op = _op
+
+    def __repr__(self):
+        return f"Value(data={self.data}, grad={self.grad})"
 
     def __add__(self, other):
         other = other if isinstance(other, Value) else Value(other)
@@ -29,17 +33,43 @@ class Value:
         out._backward = _backward
         return out
 
-    def relu(self):
-        out = Value(max(0, self.data), (self,), "ReLU")
+    def __pow__(self, other):
+        assert isinstance(other, (int, float)), "only supporting int/float powers for now"
+        out = Value(self.data**other, (self,), f"**{other}")
 
         def _backward():
-            self.grad += (out.data > 0) * out.grad
+            self.grad += (other * (self.data ** (other - 1))) * out.grad
 
         out._backward = _backward
         return out
 
+    def tanh(self):
+        x = self.data
+        t = (math.exp(2 * x) - 1) / (math.exp(2 * x) + 1)
+        out = Value(t, (self,), "tanh")
+
+        def _backward():
+            self.grad += (1 - t**2) * out.grad
+
+        out._backward = _backward
+        return out
+
+    def __neg__(self):
+        return self * -1
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __rmul__(self, other):
+        return self * other
+
+    def __truediv__(self, other):
+        return self * (other**-1)
+
     def backward(self):
-        # Build topological order
         topo = []
         visited = set()
 
@@ -52,7 +82,6 @@ class Value:
 
         build_topo(self)
 
-        # Set base gradient and apply chain rule in reverse
         self.grad = 1.0
         for node in reversed(topo):
             node._backward()
