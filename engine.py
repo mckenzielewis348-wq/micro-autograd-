@@ -43,6 +43,15 @@ class Value:
         out._backward = _backward
         return out
 
+    def relu(self):
+        out = Value(0.0 if self.data < 0 else self.data, (self,), "ReLU")
+
+        def _backward():
+            self.grad += (out.data > 0) * out.grad
+
+        out._backward = _backward
+        return out
+
     def tanh(self):
         x = self.data
         t = (math.exp(2 * x) - 1) / (math.exp(2 * x) + 1)
