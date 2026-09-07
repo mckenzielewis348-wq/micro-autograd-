@@ -15,6 +15,5 @@ A lightweight scalar-based autograd engine and neural network built from scratch
 ## How to Run
 
 Run the training script in your terminal:
-
 ```bash
 python3 train.py 
